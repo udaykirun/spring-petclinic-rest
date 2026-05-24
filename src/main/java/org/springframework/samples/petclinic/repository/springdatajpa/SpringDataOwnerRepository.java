@@ -18,6 +18,8 @@ package org.springframework.samples.petclinic.repository.springdatajpa;
 import java.util.Collection;
 
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
@@ -37,6 +39,18 @@ public interface SpringDataOwnerRepository extends OwnerRepository, Repository<O
     @Override
     @Query("SELECT DISTINCT owner FROM Owner owner left join fetch owner.pets WHERE owner.lastName LIKE :lastName%")
     Collection<Owner> findByLastName(@Param("lastName") String lastName);
+
+    @Override
+    @Query(
+        value = "SELECT owner FROM Owner owner WHERE owner.lastName LIKE CONCAT(:lastName, '%')",
+        countQuery = "SELECT COUNT(owner) FROM Owner owner WHERE owner.lastName LIKE CONCAT(:lastName, '%')")
+    Page<Owner> findByLastName(@Param("lastName") String lastName, Pageable pageable);
+
+    @Override
+    @Query(
+        value = "SELECT owner FROM Owner owner",
+        countQuery = "SELECT COUNT(owner) FROM Owner owner")
+    Page<Owner> findAll(Pageable pageable);
 
     @Override
     @Query("SELECT owner FROM Owner owner left join fetch owner.pets WHERE owner.id =:id")

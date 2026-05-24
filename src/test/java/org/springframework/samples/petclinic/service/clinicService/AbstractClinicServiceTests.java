@@ -17,6 +17,9 @@ package org.springframework.samples.petclinic.service.clinicService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.samples.petclinic.model.*;
 import org.springframework.samples.petclinic.service.ClinicService;
 import org.springframework.samples.petclinic.util.EntityUtils;
@@ -340,6 +343,26 @@ abstract class AbstractClinicServiceTests {
         assertThat(owner1.getFirstName()).isEqualTo("George");
         Owner owner3 = EntityUtils.getById(owners, Owner.class, 3);
         assertThat(owner3.getFirstName()).isEqualTo("Eduardo");
+    }
+
+    @Test
+    void shouldFindOwnersPage(){
+        Page<Owner> owners = this.clinicService.findOwners(null, PageRequest.of(0, 3, Sort.by("id")));
+        assertThat(owners.getTotalElements()).isEqualTo(10);
+        assertThat(owners.getTotalPages()).isEqualTo(4);
+        assertThat(owners.getContent())
+            .extracting(Owner::getFirstName)
+            .containsExactly("George", "Betty", "Eduardo");
+    }
+
+    @Test
+    void shouldFindOwnersPageByLastName(){
+        Page<Owner> owners = this.clinicService.findOwners("Davis", PageRequest.of(0, 1, Sort.by("id")));
+        assertThat(owners.getTotalElements()).isEqualTo(2);
+        assertThat(owners.getTotalPages()).isEqualTo(2);
+        assertThat(owners.getContent())
+            .extracting(Owner::getFirstName)
+            .containsExactly("Betty");
     }
 
     @Test

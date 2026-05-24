@@ -16,13 +16,18 @@
 package org.springframework.samples.petclinic.repository.jpa;
 
 import java.util.Collection;
+import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.samples.petclinic.model.Owner;
 import org.springframework.samples.petclinic.repository.OwnerRepository;
 import org.springframework.stereotype.Repository;
@@ -61,6 +66,20 @@ public class JpaOwnerRepositoryImpl implements OwnerRepository {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Page<Owner> findByLastName(String lastName, Pageable pageable) throws DataAccessException {
+        Query query = this.em.createQuery("SELECT owner FROM Owner owner WHERE owner.lastName LIKE :lastName ORDER BY owner.id");
+        query.setParameter("lastName", lastName + "%");
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        List<Owner> owners = query.getResultList();
+        Query countQuery = this.em.createQuery("SELECT COUNT(owner) FROM Owner owner WHERE owner.lastName LIKE :lastName");
+        countQuery.setParameter("lastName", lastName + "%");
+        long total = (long) countQuery.getSingleResult();
+        return new PageImpl<>(owners, pageable, total);
+    }
+
+    @Override
     public Owner findById(int id) {
         // using 'join fetch' because a single query should load both owners and pets
         // using 'left join fetch' because it might happen that an owner does not have pets yet
@@ -86,6 +105,18 @@ public class JpaOwnerRepositoryImpl implements OwnerRepository {
 		Query query = this.em.createQuery("SELECT owner FROM Owner owner");
         return query.getResultList();
 	}
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Page<Owner> findAll(@NonNull Pageable pageable) throws DataAccessException {
+        Query query = this.em.createQuery("SELECT owner FROM Owner owner ORDER BY owner.id");
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        List<Owner> owners = query.getResultList();
+        Query countQuery = this.em.createQuery("SELECT COUNT(owner) FROM Owner owner");
+        long total = (long) countQuery.getSingleResult();
+        return new PageImpl<>(owners, pageable, total);
+    }
 
 	@Override
 	public void delete(Owner owner) throws DataAccessException {

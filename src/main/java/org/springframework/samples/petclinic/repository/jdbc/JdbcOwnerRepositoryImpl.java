@@ -18,6 +18,9 @@ import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitializat
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -86,6 +89,26 @@ public class JdbcOwnerRepositoryImpl implements OwnerRepository {
         );
         loadOwnersPetsAndVisits(owners);
         return owners;
+    }
+
+    @Override
+    public Page<Owner> findByLastName(String lastName, Pageable pageable) throws DataAccessException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("lastName", lastName + "%");
+        params.put("size", pageable.getPageSize());
+        params.put("offset", pageable.getOffset());
+        List<Owner> owners = this.namedParameterJdbcTemplate.query(
+            "SELECT id, first_name, last_name, address, city, telephone FROM owners WHERE last_name like :lastName ORDER BY id LIMIT :size OFFSET :offset",
+            params,
+            BeanPropertyRowMapper.newInstance(Owner.class)
+        );
+        loadOwnersPetsAndVisits(owners);
+        Long total = this.namedParameterJdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM owners WHERE last_name like :lastName",
+            params,
+            Long.class
+        );
+        return new PageImpl<>(owners, pageable, total == null ? 0 : total);
     }
 
     /**
@@ -168,6 +191,24 @@ public class JdbcOwnerRepositoryImpl implements OwnerRepository {
         }
 	    return owners;
 	}
+
+    @Override
+    public Page<Owner> findAll(Pageable pageable) throws DataAccessException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("size", pageable.getPageSize());
+        params.put("offset", pageable.getOffset());
+        List<Owner> owners = this.namedParameterJdbcTemplate.query(
+            "SELECT id, first_name, last_name, address, city, telephone FROM owners ORDER BY id LIMIT :size OFFSET :offset",
+            params,
+            BeanPropertyRowMapper.newInstance(Owner.class));
+        loadOwnersPetsAndVisits(owners);
+        Long total = this.namedParameterJdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM owners",
+            params,
+            Long.class
+        );
+        return new PageImpl<>(owners, pageable, total == null ? 0 : total);
+    }
 
 	@Override
 	@Transactional

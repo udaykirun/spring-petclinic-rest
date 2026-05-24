@@ -22,6 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.samples.petclinic.mapper.OwnerMapper;
 import org.springframework.samples.petclinic.mapper.PetMapper;
@@ -210,6 +213,27 @@ class OwnerRestControllerTests {
             .andExpect(jsonPath("$.[0].firstName").value("Betty"))
             .andExpect(jsonPath("$.[1].id").value(4))
             .andExpect(jsonPath("$.[1].firstName").value("Harold"));
+    }
+
+    @Test
+    @WithMockUser(roles = "OWNER_ADMIN")
+    void testGetOwnersPageSuccess() throws Exception {
+        var pageRequest = PageRequest.of(0, 2, Sort.by("id"));
+        var pageOwners = ownerMapper.toOwners(owners.subList(0, 2)).stream().toList();
+        given(this.clinicService.findOwners(null, pageRequest))
+            .willReturn(new PageImpl<>(pageOwners, pageRequest, owners.size()));
+        this.mockMvc.perform(get("/api/v2/owners?page=0&size=2")
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(jsonPath("$.content[0].id").value(1))
+            .andExpect(jsonPath("$.content[0].firstName").value("George"))
+            .andExpect(jsonPath("$.content[1].id").value(2))
+            .andExpect(jsonPath("$.content[1].firstName").value("Betty"))
+            .andExpect(jsonPath("$.page").value(0))
+            .andExpect(jsonPath("$.size").value(2))
+            .andExpect(jsonPath("$.totalElements").value(4))
+            .andExpect(jsonPath("$.totalPages").value(2));
     }
 
     @Test
