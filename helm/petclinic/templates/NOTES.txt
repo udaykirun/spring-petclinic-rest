@@ -1,0 +1,14 @@
+PetClinic has been deployed!
+
+Get the application URL:
+  kubectl get ingress -n {{ .Release.Namespace }}
+
+Check pod status:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+Check logs:
+  kubectl logs -l app={{ .Release.Name }} -n {{ .Release.Namespace }} --tail=50
+
+Test the API:
+  curl http://<INGRESS_HOST>/petclinic/api/vets
+  curl http://<INGRESS_HOST>/petclinic/actuator/health

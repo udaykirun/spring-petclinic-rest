@@ -1,0 +1,65 @@
+replicaCount: 2
+
+image:
+  repository: ""          # set at deploy time via --set
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets:
+  - name: ghcr-secret
+
+nameOverride: ""
+fullnameOverride: "petclinic"
+
+serviceAccount:
+  create: true
+  name: "petclinic-sa"
+  annotations: {}         # IRSA annotation added at deploy time
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 9966
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  host: petclinic.example.com
+
+postgresql:
+  host: "petclinic-db.cg5um8akg8rf.us-east-1.rds.amazonaws.com"
+  port: 5432
+  database: petclinic
+  user: petclinic
+  password: ""            # injected from K8s secret
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  failureThreshold: 3
+
+env:
+  SPRING_PROFILES_ACTIVE: "postgres"
