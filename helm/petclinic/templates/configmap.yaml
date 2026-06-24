@@ -3,9 +3,7 @@ kind: ConfigMap
 metadata:
   name: petclinic-config
   namespace: {{ .Release.Namespace }}
-  labels:
-    app: {{ .Release.Name }}
 data:
-  SPRING_PROFILES_ACTIVE: {{ .Values.env.SPRING_PROFILES_ACTIVE }}
-  SPRING_DATASOURCE_URL: "jdbc:postgresql://{{ .Values.postgresql.host }}:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}"
+  SPRING_PROFILES_ACTIVE: "springdatajpa"
+  POSTGRES_URL: "jdbc:postgresql://{{ .Values.postgresql.host }}:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}"
   SERVER_PORT: "9966"

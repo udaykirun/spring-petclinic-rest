@@ -21,21 +21,20 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
+          envFrom:
+            - configMapRef:
+                name: petclinic-config
           env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "postgres"
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://{{ .Values.postgresql.host }}:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}"
-            - name: SPRING_DATASOURCE_USERNAME
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: petclinic-db-secret
-                  key: DB_USER
-            - name: SPRING_DATASOURCE_PASSWORD
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASS
               valueFrom:
                 secretKeyRef:
                   name: petclinic-db-secret
-                  key: DB_PASSWORD
+                  key: POSTGRES_PASS
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
