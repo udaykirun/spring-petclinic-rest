@@ -1,20 +1,11 @@
-replicaCount: 2
+replicaCount: 1
 
 image:
-  repository: ""          # set at deploy time via --set
+  repository: ghcr.io/udaykirun/petclinic
   pullPolicy: Always
   tag: "latest"
 
-imagePullSecrets:
-  - name: ghcr-secret
-
-nameOverride: ""
-fullnameOverride: "petclinic"
-
-serviceAccount:
-  create: true
-  name: "petclinic-sa"
-  annotations: {}         # IRSA annotation added at deploy time
+imagePullSecrets: []
 
 service:
   type: ClusterIP
@@ -22,20 +13,14 @@ service:
   targetPort: 9966
 
 ingress:
-  enabled: true
-  className: alb
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-  host: petclinic.example.com
+  enabled: false
 
 postgresql:
-  host: "petclinic-db.cg5um8akg8rf.us-east-1.rds.amazonaws.com"
+  host: "petclinic-postgres-postgresql.production.svc.cluster.local"
   port: 5432
   database: petclinic
   user: petclinic
-  password: ""            # injected from K8s secret
+  password: ""
 
 resources:
   requests:
@@ -46,20 +31,4 @@ resources:
     memory: 1Gi
 
 autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 4
-  targetCPUUtilizationPercentage: 70
-
-readinessProbe:
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  failureThreshold: 3
-
-livenessProbe:
-  initialDelaySeconds: 60
-  periodSeconds: 15
-  failureThreshold: 3
-
-env:
-  SPRING_PROFILES_ACTIVE: "postgres"
+  enabled: false

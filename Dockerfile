@@ -15,6 +15,6 @@ RUN chown appuser:appgroup app.jar
 USER appuser
 EXPOSE 9966
 ENTRYPOINT ["java", \
-  "-Dspring.profiles.active=postgres", \
-  "-Dspring.datasource.initialization-mode=always", \
-  "-jar", "app.jar"]
+  "-Dspring.profiles.active=spring-data-jpa", \
+  "-jar", \
+  "app.jar"]

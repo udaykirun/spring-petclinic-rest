@@ -4,6 +4,5 @@ metadata:
   name: petclinic-config
   namespace: {{ .Release.Namespace }}
 data:
-  SPRING_PROFILES_ACTIVE: "springdatajpa"
   POSTGRES_URL: "jdbc:postgresql://{{ .Values.postgresql.host }}:{{ .Values.postgresql.port }}/{{ .Values.postgresql.database }}"
   SERVER_PORT: "9966"
